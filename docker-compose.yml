@@ -1,0 +1,35 @@
+version: '3'
+services:
+    awebsys_laravel:
+        build:
+            context: ./vendor/laravel/sail/runtimes/8.2
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP}'
+        image: sail-8.2/app
+        extra_hosts:
+            -   'host.docker.internal:host-gateway'
+        ports:
+            #- '${APP_PORT:-80}:80'
+            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.awebsys_cz.rule=Host(`awebsys.cz.local`)"
+            - "traefik.http.services.awebsys_cz.loadbalancer.server.port=80"
+            - "traefik.docker.network=traefik_proxy"
+        volumes:
+            -   '.:/var/www/html'
+        networks:
+            - sail
+            - traefik_proxy
+
+networks:
+    sail:
+        driver: bridge
+    traefik_proxy:
+        external: true
